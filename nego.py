@@ -1,0 +1,72 @@
+
+from boofuzz import *
+
+
+def main():
+   
+    host = "192.168.1.22"
+    port = 445
+    proto = "tcp"
+
+    session = Session(
+        target=Target(
+            connection = SocketConnection(host, port, proto)
+            )
+        )
+
+    s_initialize("negotiate_request")
+
+    
+    #NetBIOS Session Service
+    s_bytes(value=b'\x00', size=1, fuzzable=False) #Message Type
+    s_bytes(value=b'\x00\x00\x9b', size=3, fuzzable=False)  #Length XXX
+    #-SMB1
+    #--SMB1 Header
+    s_bytes(value=b'\xff\x53\x4d\x42', size=4, fuzzable=False)  #Server Component
+    s_bytes(value=b'\x72', size=1,fuzzable=False)  #Command: nego
+    s_bytes(value=b'\x00\x00\x00\x00', size=4,fuzzable=False)  #NT STATUS XXX
+    s_bytes(value=b'\x18', size=1,fuzzable=False)  #Flags X
+    s_bytes(value=b'\x53\xc8', size=2,fuzzable=False)  #Flags2 XX
+    s_bytes(value=b'\x00\x00', size=2,fuzzable=False)  #Process ID High
+    s_bytes(value=b'\x00\x00\x00\x00\x00\x00\x00\x00', size=8,fuzzable=False)  #Signature
+    s_bytes(value=b'\x00\x00', size=2,fuzzable=False)  #Reserved
+    s_bytes(value=b'\xff\xff', size=2,fuzzable=False)  #Tree ID
+    s_bytes(value=b'\xff\xfe', size=2,fuzzable=False)  #Process ID
+    s_bytes(value=b'\x00\x00', size=2,fuzzable=False)  #User ID
+    s_bytes(value=b'\x00\x00', size=2,fuzzable=False)  #Multiplex ID
+    #Command Body
+    s_bytes(value=b'\x02', size=1) # Word Count
+    s_bytes(value=b'\x78\x00', size=2) # Byte Count
+    
+    s_bytes(value=b'\x02', size=1)    #structure size
+    s_bytes(value=b'\x50\x43\x20\x4e\x45\x54\x57\x4f\x52\x4b\x20\x50\x52\x4f\x47\x52\x41\x4d\x20\x31\x2e\x30\x00', size=23)    #dialect strings
+    
+    s_bytes(value=b'\x02', size=1)    #structure size
+    s_bytes(value=b'\x4c\x41\x4e\x4d\x41\x4e\x31\x2e\x30\x00', size=10)    #dialect strings
+    
+    s_bytes(value=b'\x02', size=1)    #structure size
+    s_bytes(value=b'\x57\x69\x6e\x64\x6f\x77\x73\x20\x66\x6f\x72\x20\x57\x6f\x72\x6b\x67\x72\x6f\x75\x70\x73\x20\x33\x2e\x31\x61\x00', size=28)    #dialect strings
+    
+    s_bytes(value=b'\x02', size=1)    #structure size
+    s_bytes(value=b'\x4c\x4d\x31\x2e\x32\x58\x30\x30\x32\x00', size=10)    #dialect strings
+    
+    s_bytes(value=b'\x02', size=1)    #structure size
+    s_bytes(value=b'\x4c\x41\x4e\x4d\x41\x4e\x32\x2e\x31\x00', size=10)    #dialect strings
+    
+    s_bytes(value=b'\x02', size=1)    #structure size
+    s_bytes(value=b'\x4e\x54\x20\x4c\x4d\x20\x30\x2e\x31\x32\x00', size=11)    #dialect strings
+    
+    s_bytes(value=b'\x02', size=1)
+    s_bytes(value=b'\x53\x4d\x42\x20\x32\x2e\x30\x30\x32\x00',size=10)
+    
+    s_bytes(value=b'\x02', size=1)
+    s_bytes(value=b'\x53\x4d\x42\x20\x32\x2e\x3f\x3f\x3f\x00',size=10)
+
+
+    session.connect(s_get("negotiate_request"))
+
+    session.fuzz()
+
+
+if __name__ == "__main__":
+    main()

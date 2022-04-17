@@ -1,0 +1,56 @@
+
+from boofuzz import *
+
+
+def main():
+   
+    host = "192.168.1.22"
+    port = 445
+    proto = "tcp"
+
+    session = Session(
+        target=Target(
+            connection = SocketConnection(host, port, proto)
+            )
+        )
+
+    s_initialize("Tree_Connect_Request")
+
+    
+    #NetBIOS Session Service
+    s_bytes(value=b'\x00', size=1, fuzzable=False) #Message Type
+    s_bytes(value=b'\x00\x00\x60', size=3, fuzzable=False)  #Length XXX
+    #-SMB1
+    #--SMB1 Header
+    s_bytes(value=b'\xff\x53\x4d\x42', size=4, fuzzable=False)  #Server Component
+    s_bytes(value=b'\x75', size=1,fuzzable=False)  #Command: Tree Connect AndX
+    s_bytes(value=b'\x00\x00\x00\x00', size=4)  #NT STATUS XXX
+    s_bytes(value=b'\x18', size=2)  #Flags X
+    s_bytes(value=b'\x07\xc8', size=2)  #Flags2 XX
+    s_bytes(value=b'\x00\x00', size=2)  #Process ID High
+    s_bytes(value=b'\x00\x00\x00\x00\x00\x00\x00\x00', size=8)  #Signature
+    s_bytes(value=b'\x00\x00', size=2)  #Reserved
+    s_bytes(value=b'\x00\x00', size=2)  #Tree ID
+    s_bytes(value=b'\xff\xfe', size=2)  #Process ID
+    s_bytes(value=b'\x00\x08', size=2)  #User ID
+    s_bytes(value=b'\x00\x01', size=2)  #Multiplex ID
+    #tree connect AndX Request
+    s_bytes(value=b'\x04', size=1)  #WordCount
+    s_bytes(value=b'\xff', size=1)  #AndXCommand
+    s_bytes(value=b'\x00', size=1)  #Reserved
+    s_bytes(value=b'\x60\x00', size=2)  #AndXOffset
+    s_bytes(value=b'\x08\x00', size=2)  #Flags
+    s_bytes(value=b'\x01\x00', size=2)  #Password length
+    s_bytes(value=b'\x35\x00', size=2)  #Byte Count
+    s_bytes(value=b'\x00', size=1)  #Password
+    s_bytes(value=b'\x5c\x00\x5c\x00\x44\x00\x45\x00\x53\x00\x4b\x00\x54\x00\x4f\x00\x50\x00\x2d\x00\x33\x00\x51\x00\x46\x00\x49\x00\x4a\x00\x4b\x00\x33\x00\x5c\x00\x59\x00\x4f\x00\x4c\x00\x4f\x00\x00\x00', size=46,fuzzable=False)  #path
+    s_bytes(value=b'\x3f\x3f\x3f\x3f\x3f\x00', size=6)  #Service
+        
+
+    session.connect(s_get("Tree_Connect_Request"))
+
+    session.fuzz()
+
+
+if __name__ == "__main__":
+    main()
